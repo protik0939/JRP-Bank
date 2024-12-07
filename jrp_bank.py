@@ -189,3 +189,82 @@ class User(Person):
                 print("~~~ Interest can only be applied to positive balances. ~~~")
         else:
             print("~~~ User not found. ~~~")
+            
+            
+class Bank:
+    def __init__(self):
+        self.money = 10000000000
+        self.interest_rate = 5.0
+    def calculate_interest(self, principal, rate, time):
+        return (principal * rate * time) / 100
+
+
+def main():
+    while True:
+        print("\n******** JRP Bank ********")
+        print("1. User Options")
+        print("2. Admin Options")
+        print("3. Bank Reports")
+        print("4. Quit")
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            print("\n**** User Options ****")
+            print("1. Create Account")
+            print("2. Deposit Money")
+            print("3. Withdraw Money")
+            print("4. Check Balance")
+            print("5. Transaction History")
+            print("6. Take Loan")
+            print("7. Apply Interest")
+            print("8. Go Back")
+            user_choice = input("> Enter your choice: ")
+            if user_choice == "1":
+                user.create_account()
+            elif user_choice == "2":
+                user.deposit_money()
+            elif user_choice == "3":
+                user.withdraw_money()
+            elif user_choice == "4":
+                user.check_balance()
+            elif user_choice == "5":
+                user.transaction_history()
+            elif user_choice == "6":
+                user.take_loan()
+            elif user_choice == "7":
+                user.apply_interest()
+
+        elif choice == "2":
+            print("\n**** Admin Options ****")
+            print("1. Create Account")
+            print("2. Total Bank Balance")
+            print("3. Total Loan Amount")
+            print("4. Set Interest Rate")
+            print("5. Loan Feature Toggle")
+            print("6. Go Back")
+            admin_choice = input("> Enter your choice: ")
+            if admin_choice == "1":
+                admin.create_account()
+            elif admin_choice == "2":
+                admin.total_bank_balance()
+            elif admin_choice == "3":
+                admin.total_loan_amount()
+            elif admin_choice == "4":
+                admin.set_interest_rate()
+            elif admin_choice == "5":
+                admin.loan_feature_control()
+                
+        elif choice == "3":
+            report.generate_report(user)
+
+        elif choice == "4":
+            print("\nThanks for visiting JRP Bank!")
+            break
+
+
+if __name__ == "__main__":
+    admin = Admin()
+    user = User()
+    bank = Bank()
+    report = BankReport()
+    main()
