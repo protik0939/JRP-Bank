@@ -84,111 +84,103 @@ class LoanManager(Person):
 class User(Person):
     def __init__(self):
         super().__init__(email="")
+        self.current_user_email = ""
         self.user_data = {}
         self.ttl_loan = 0.0
+        
+    def login(self):
+        user_email = input("> Enter your email: ")
+        user_pass = input("> Enter your Password: ")
+        if user_email in self.user_data:
+            if(self.user_data[user_email]['password'] == user_pass):
+                print('>>> Logged in Successfully!')
+                self.current_user_email = user_email
+                return '1'
+            print("Wrong password! Try again!")
+            return '2'
+        print("User don't exist. Try creating one tapping 3!")
+        return '3'
+            
 
     def create_account(self):
         user_email = input("> Enter your Email: ").strip().lower()
+        user_pass = input("> Enter your Password: ").strip()
         initial_balance = 0
-        self.user_data[user_email] = {'balance': initial_balance, 'transactions': []}
+        self.user_data[user_email] = {'password': user_pass, 'balance': initial_balance, 'transactions': []}
         print(f"~~~ Account created for {user_email} successfully ~~~")
 
     def check_balance(self):
-        user_email = input("> Enter your Email: ").strip()
-        if user_email in self.user_data:
-            print(f"~~~ Your current balance is: ৳ {self.user_data[user_email]['balance']:.2f} ~~~")
-        else:
-            print("~~~ User not found ~~~")
+        print(f"~~~ Your current balance is: ৳ {self.user_data[self.current_user_email]['balance']:.2f} ~~~")
 
     def deposit_money(self):
-        user_email = input("> Enter your Email: ").strip()
-        if user_email in self.user_data:
             try:
                 amount = float(input("> Enter the amount to deposit: "))
                 if amount < 0:
                     raise ValueError("Please enter a non-negative amount.")
-                self.user_data[user_email]['balance'] += amount
+                self.user_data[self.current_user_email]['balance'] += amount
                 bank.money += amount
-                self.user_data[user_email]['transactions'].append(Transaction(user_email, amount, "Deposit"))
-                print(f"~~~ ৳ {amount:.2f} deposited successfully. Current balance: ৳ {self.user_data[user_email]['balance']:.2f} ~~~")
+                self.user_data[self.current_user_email]['transactions'].append(Transaction(self.current_user_email, amount, "Deposit"))
+                print(f"~~~ ৳ {amount:.2f} deposited successfully. Current balance: ৳ {self.user_data[self.current_user_email]['balance']:.2f} ~~~")
             except ValueError as e:
                 print(f"Error: {e}")
-        else:
-            print("~~~ User not found. ~~~")
 
     def withdraw_money(self):
-        user_email = input("> Enter your Email: ").strip()
-        if user_email in self.user_data:
             try:
                 amount = float(input("> Enter the amount to withdraw: "))
                 if amount < 0:
                     raise ValueError("Please enter a non-negative amount.")
-                if amount <= self.user_data[user_email]['balance']:
-                    self.user_data[user_email]['balance'] -= amount
+                if amount <= self.user_data[self.current_user_email]['balance']:
+                    self.user_data[self.current_user_email]['balance'] -= amount
                     bank.money -= amount
-                    self.user_data[user_email]['transactions'].append(Transaction(user_email, amount, "Withdrawal"))
-                    print(f"৳ {amount:.2f} withdrawn successfully. Current balance: ৳ {self.user_data[user_email]['balance']:.2f}")
+                    self.user_data[self.current_user_email]['transactions'].append(Transaction(self.current_user_email, amount, "Withdrawal"))
+                    print(f"৳ {amount:.2f} withdrawn successfully. Current balance: ৳ {self.user_data[self.current_user_email]['balance']:.2f}")
                 else:
                     raise ValueError("Insufficient balance.")
             except ValueError as e:
                 print(f"Error: {e}")
-        else:
-            print("~~~ User not found. ~~~")
 
     def transaction_history(self):
-        user_email = input("> Enter your Email: ").strip()
-        if user_email in self.user_data:
-            print(f">>> Transaction history for {user_email}:")
-            transactions = self.user_data[user_email]['transactions']
+            print(f">>> Transaction history for {self.current_user_email}:")
+            transactions = self.user_data[self.current_user_email]['transactions']
             for i, transaction in enumerate(transactions, start=1):
                 print(f"{i}. {transaction}")
-        else:
-            print("~~~ User not found. ~~~")
 
     def take_loan(self):
         if admin.admin_data['admin']['loan_feature_enabled']:
-            user_email = input("> Enter your Email: ").strip()
-            if user_email in self.user_data:
                 try:
                     loan_amount = float(input("> Enter loan amount: "))
                     if loan_amount < 0:
                         raise ValueError("Loan amount must be positive.")
                     if loan_amount <= bank.money:
-                        if loan_amount <= (self.user_data[user_email]['balance'] * 2):
-                            self.user_data[user_email]['balance'] += loan_amount
+                        if loan_amount <= (self.user_data[self.current_user_email]['balance'] * 2):
+                            self.user_data[self.current_user_email]['balance'] += loan_amount
                             bank.money -= loan_amount
                             self.ttl_loan += loan_amount
-                            self.user_data[user_email]['transactions'].append(Transaction(user_email, loan_amount, "Loan"))
-                            print(f"Loan granted! New balance: ৳{self.user_data[user_email]['balance']:.2f}")
+                            self.user_data[self.current_user_email]['transactions'].append(Transaction(self.current_user_email, loan_amount, "Loan"))
+                            print(f"Loan granted! New balance: ৳{self.user_data[self.current_user_email]['balance']:.2f}")
                         else:
                             raise ValueError("Loan exceeds allowed limit.")
                     else:
                         print("Bank has insufficient funds.")
                 except ValueError as e:
                     print(f"Error: {e}")
-            else:
-                print("~~~ User not found. ~~~")
         else:
             print("!!! Loan feature is disabled by admin.")
         
     def apply_interest(self):
-        user_email = input("> Enter your Email: ").strip()
-        if user_email in self.user_data:
-            balance = self.user_data[user_email]['balance']
+            balance = self.user_data[self.current_user_email]['balance']
             if balance > 0:
                 try:
                     time = float(input("> Enter the time period (in years): "))
                     interest = bank.calculate_interest(balance, bank.interest_rate, time)
-                    self.user_data[user_email]['balance'] += interest
+                    self.user_data[self.current_user_email]['balance'] += interest
                     bank.money += interest
-                    self.user_data[user_email]['transactions'].append(f"Applied interest of ৳ {interest:.2f} for {time} years")
-                    print(f"~~~ Interest of ৳ {interest:.2f} applied. Current balance: ৳ {self.user_data[user_email]['balance']:.2f} ~~~")
+                    self.user_data[self.current_user_email]['transactions'].append(f"Applied interest of ৳ {interest:.2f} for {time} years")
+                    print(f"~~~ Interest of ৳ {interest:.2f} applied. Current balance: ৳ {self.user_data[self.current_user_email]['balance']:.2f} ~~~")
                 except ValueError as e:
                     print(f"Error: {e}")
             else:
                 print("~~~ Interest can only be applied to positive balances. ~~~")
-        else:
-            print("~~~ User not found. ~~~")
             
             
 class Bank:
@@ -204,62 +196,81 @@ def main():
         print("\n******** JRP Bank ********")
         print("1. User Options")
         print("2. Admin Options")
-        print("3. Bank Reports")
-        print("4. Quit")
+        print("3. Create User Account")
+        print("4. Bank Reports")
+        print("5. Quit")
         choice = input("Enter your choice: ")
-
+        
         if choice == "1":
-            print("\n**** User Options ****")
-            print("1. Create Account")
-            print("2. Deposit Money")
-            print("3. Withdraw Money")
-            print("4. Check Balance")
-            print("5. Transaction History")
-            print("6. Take Loan")
-            print("7. Apply Interest")
-            print("8. Go Back")
-            user_choice = input("> Enter your choice: ")
-            if user_choice == "1":
-                user.create_account()
-            elif user_choice == "2":
-                user.deposit_money()
-            elif user_choice == "3":
-                user.withdraw_money()
-            elif user_choice == "4":
-                user.check_balance()
-            elif user_choice == "5":
-                user.transaction_history()
-            elif user_choice == "6":
-                user.take_loan()
-            elif user_choice == "7":
-                user.apply_interest()
-
+            handle_user_options()
         elif choice == "2":
-            print("\n**** Admin Options ****")
-            print("1. Create Account")
-            print("2. Total Bank Balance")
-            print("3. Total Loan Amount")
-            print("4. Set Interest Rate")
-            print("5. Loan Feature Toggle")
-            print("6. Go Back")
-            admin_choice = input("> Enter your choice: ")
-            if admin_choice == "1":
-                admin.create_account()
-            elif admin_choice == "2":
-                admin.total_bank_balance()
-            elif admin_choice == "3":
-                admin.total_loan_amount()
-            elif admin_choice == "4":
-                admin.set_interest_rate()
-            elif admin_choice == "5":
-                admin.loan_feature_control()
-                
+            handle_admin_options()
         elif choice == "3":
-            report.generate_report(user)
-
+            user.create_account()
         elif choice == "4":
-            print("\nThanks for visiting JRP Bank!")
+            report.generate_report(user)
+        elif choice == "5":
+            print("Thank you for using JRP Bank!")
             break
+        else:
+            print("Invalid choice! Please try again.")
+
+def handle_user_options():
+    while True:
+        login_status = user.login()
+        if login_status == '2': 
+            continue
+        elif login_status == '3':
+            return
+        elif login_status == '1':
+            while True:
+                print("\n**** User Options ****")
+                print("1. Deposit Money")
+                print("2. Withdraw Money")
+                print("3. Check Balance")
+                print("4. Transaction History")
+                print("5. Take Loan")
+                print("6. Apply Interest")
+                print("7. Log Out")
+                user_choice = input("> Enter your choice: ")
+                
+                if user_choice == "1":
+                    user.deposit_money()
+                elif user_choice == "2":
+                    user.withdraw_money()
+                elif user_choice == "3":
+                    user.check_balance()
+                elif user_choice == "4":
+                    user.transaction_history()
+                elif user_choice == "5":
+                    user.take_loan()
+                elif user_choice == "6":
+                    user.apply_interest()
+                elif user_choice == "7":
+                    return
+                else:
+                    print("Invalid choice! Please try again.")
+
+def handle_admin_options():
+    print("\n**** Admin Options ****")
+    print("1. Create Account")
+    print("2. Total Bank Balance")
+    print("3. Total Loan Amount")
+    print("4. Set Interest Rate")
+    print("5. Loan Feature Toggle")
+    print("6. Go Back")
+    admin_choice = input("> Enter your choice: ")
+    if admin_choice == "1":
+            admin.create_account()
+    elif admin_choice == "2":
+            admin.total_bank_balance()
+    elif admin_choice == "3":
+        admin.total_loan_amount()
+    elif admin_choice == "4":
+        admin.set_interest_rate()
+    elif admin_choice == "5":
+        admin.loan_feature_control()
+        
 
 
 if __name__ == "__main__":
