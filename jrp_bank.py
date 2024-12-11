@@ -12,7 +12,35 @@ class Person:
 class Admin(Person):
     def __init__(self):
         super().__init__(email="admin@bank.com")
-        self.admin_data = {'admin': {'Email': self.email, 'loan_feature_enabled': True}}
+        self.admin_data = {
+            'adminInfo': [
+                {'email': 'protik@jrp.bd', 'password': '1858'},
+                {'email': 'jarif@jrp.bd', 'password': '1855'},
+                {'email': 'rafi@jrp.bd', 'password': '1847'}
+            ]
+        }
+        self.loan_feature_enabled = True
+        self.current_admin_email = None
+        
+    def login(self):
+        user_email = input("> Enter your email: ")
+        user_pass = input("> Enter your Password: ")
+        randomNum = '0'
+        for admin in self.admin_data['adminInfo']:
+            if admin['email'] == user_email:
+                if admin['password'] == user_pass:
+                    print('>>> Logged in Successfully!')
+                    self.current_admin_email = user_email  # Store the logged-in admin's email.
+                    return '1'
+                else:
+                    print("Wrong password! Try again!")
+                    randomNum = '2'
+        print("User doesn't exist. Try again!")
+        randomNum = '3'
+        return randomNum
+        
+    def see_info(self):
+        print(f"~~~ Currently {self.current_admin_email} is managing the bank ~~~")
 
     def total_bank_balance(self):
         print(f"Total bank balance: ৳ {bank.money:.2f}")
@@ -21,19 +49,13 @@ class Admin(Person):
         print(f"Total loan amount granted: ৳ {abs(user.ttl_loan):.2f}")
 
     def loan_feature_control(self):
-        if self.admin_data['admin']['loan_feature_enabled']:
-            self.admin_data['admin']['loan_feature_enabled'] = False
+        if self.loan_feature_enabled:
+            self.loan_feature_enabled = False
             print("Loan feature is now turned off.")
         else:
-            self.admin_data['admin']['loan_feature_enabled'] = True
+            self.loan_feature_enabled = True
             print("Loan feature is now turned on.")
 
-    def create_account(self):
-        admin_email = input("> Enter Admin Name: ").strip().lower()
-        self.admin_data['admin']['Email'] = admin_email
-        print(f"Account created for {admin_email}, a new employee for our bank.")
-        
-        
     def set_interest_rate(self):
         try:
             rate = float(input("> Enter new interest rate (as %): "))
@@ -43,10 +65,6 @@ class Admin(Person):
             print(f"Interest rate updated to {rate:.2f}%")
         except ValueError as e:
             print(f"Error: {e}")
-
-
-
-#  Rafi            
 
 
 class Transaction:
@@ -87,6 +105,9 @@ class User(Person):
         self.current_user_email = ""
         self.user_data = {}
         self.ttl_loan = 0.0
+
+    def see_info(self):
+        print(f"~~~ Currently {self.current_user_email} is logged in with Taka ৳ {self.user_data[self.current_user_email]['balance']:.2f} ~~~")
         
     def login(self):
         user_email = input("> Enter your email: ")
@@ -146,7 +167,7 @@ class User(Person):
                 print(f"{i}. {transaction}")
 
     def take_loan(self):
-        if admin.admin_data['admin']['loan_feature_enabled']:
+        if admin.loan_feature_enabled:
                 try:
                     loan_amount = float(input("> Enter loan amount: "))
                     if loan_amount < 0:
@@ -231,7 +252,8 @@ def handle_user_options():
                 print("4. Transaction History")
                 print("5. Take Loan")
                 print("6. Apply Interest")
-                print("7. Log Out")
+                print("7. User Info")
+                print("8. Log Out")
                 user_choice = input("> Enter your choice: ")
                 
                 if user_choice == "1":
@@ -247,29 +269,43 @@ def handle_user_options():
                 elif user_choice == "6":
                     user.apply_interest()
                 elif user_choice == "7":
+                    user.see_info()
+                elif user_choice == "8":
                     return
                 else:
                     print("Invalid choice! Please try again.")
 
 def handle_admin_options():
-    print("\n**** Admin Options ****")
-    print("1. Create Account")
-    print("2. Total Bank Balance")
-    print("3. Total Loan Amount")
-    print("4. Set Interest Rate")
-    print("5. Loan Feature Toggle")
-    print("6. Go Back")
-    admin_choice = input("> Enter your choice: ")
-    if admin_choice == "1":
-            admin.create_account()
-    elif admin_choice == "2":
-            admin.total_bank_balance()
-    elif admin_choice == "3":
-        admin.total_loan_amount()
-    elif admin_choice == "4":
-        admin.set_interest_rate()
-    elif admin_choice == "5":
-        admin.loan_feature_control()
+    while True:
+        login_status = admin.login()
+        if login_status == '2': 
+            continue
+        elif login_status == '3':
+            return
+        elif login_status == '1':
+            print("\n**** Admin Options ****")
+            print("1. Total Bank Balance")
+            print("2. Total Loan Amount")
+            print("3. Set Interest Rate")
+            print("4. Loan Feature Toggle")
+            print("5. Admin Info")
+            print("6. Log Out")
+            while True:
+                admin_choice = input("> Enter your choice: ")
+                if admin_choice == "1":
+                    admin.total_bank_balance()
+                elif admin_choice == "2":
+                    admin.total_loan_amount()
+                elif admin_choice == "3":
+                    admin.set_interest_rate()
+                elif admin_choice == "4":
+                    admin.loan_feature_control()
+                elif admin_choice == "5":
+                    admin.see_info()
+                elif admin_choice == "6":
+                    return
+                else:
+                    print("Invalid choice! Please try again.")
         
 
 
